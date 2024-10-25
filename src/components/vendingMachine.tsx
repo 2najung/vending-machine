@@ -14,8 +14,17 @@ const initialDrinks: Drink[] = [
   { name: "커피", price: 700, stock: 7, img: CoffeeImg },
 ];
 
+const initialChange = {
+  100: 10,
+  500: 10,
+  1000: 10,
+  5000: 10,
+  10000: 10,
+};
+
 const VendingMachine = () => {
   const [drinks, setDrinks] = useState<Drink[]>(initialDrinks);
+  const [change, setChange] = useState<Record<number, number>>(initialChange);
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"현금" | "카드" | null>(
     null
@@ -54,6 +63,32 @@ const VendingMachine = () => {
     );
   };
 
+  const calculateChange = (cash: number) => {
+    let remainingChange = cash;
+    const updatedChange = { ...change };
+    const changeUnits = [5000, 1000, 500, 100];
+    const changeToGive: Record<number, number> = {};
+
+    for (const unit of changeUnits) {
+      const numOfUnits = Math.min(
+        Math.floor(remainingChange / unit),
+        updatedChange[unit]
+      );
+      if (numOfUnits > 0) {
+        changeToGive[unit] = numOfUnits;
+        remainingChange -= numOfUnits * unit;
+        updatedChange[unit] -= numOfUnits;
+      }
+    }
+
+    if (remainingChange > 0) {
+      return null;
+    } else {
+      setChange(updatedChange);
+      return changeToGive;
+    }
+  };
+
   const handlePaymentMethod = (method: "현금" | "카드") => {
     setPaymentMethod(method);
     setMessage(`${method}결제 선택`);
@@ -64,12 +99,12 @@ const VendingMachine = () => {
     resetState();
   };
 
-  const insertCash = (amount: number) => {
+  const insertCash = (cash: number) => {
     if (paymentMethod !== "현금") {
       setMessage("결제 수단을 먼저 선택해주세요.");
       return;
     }
-    setInsertedMoney((prev) => prev + amount);
+    setInsertedMoney((prev) => prev + cash);
   };
 
   const confirmPurchase = () => {
@@ -82,14 +117,24 @@ const VendingMachine = () => {
       if (insertedMoney < selectedDrink.price) {
         setMessage("금액이 부족합니다. 현금을 더 투입하거나 취소해주세요.");
       } else {
-        const change = insertedMoney - selectedDrink.price;
-        setModalMessage(
-          `${selectedDrink.name} 구매가 완료되었습니다. \n거스름돈: ${change}원`
-        );
-        setShowModal(true);
-        setInsertedMoney(0);
-        updateStock(selectedDrink.name);
-        resetState();
+        const changeAmount = insertedMoney - selectedDrink.price;
+        const changeToGive = calculateChange(changeAmount);
+
+        if (changeToGive === null) {
+          setModalMessage(
+            "거스름돈이 모자라 결제가 취소되었습니다. 투입한 현금을 반환합니다."
+          );
+          setShowModal(true);
+          resetState();
+        } else {
+          setModalMessage(
+            `${selectedDrink.name} 구매가 완료되었습니다. 거스름돈: ${changeAmount}원.`
+          );
+          setShowModal(true);
+          setInsertedMoney(0);
+          updateStock(selectedDrink.name);
+          resetState();
+        }
       }
     } else if (paymentMethod === "카드") {
       setModalMessage(`${selectedDrink.name} 구매가 완료되었습니다.`);
@@ -98,7 +143,6 @@ const VendingMachine = () => {
       resetState();
     }
   };
-
   return (
     <VendingMachineContainer>
       <Screen>
