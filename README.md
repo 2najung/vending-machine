@@ -23,3 +23,8 @@ This project simulates a vending machine where users can:
 - Manage stock and purchase status
 
 Built with React, styled-components, and TypeScript
+
+png출처
+<a href="https://www.flaticon.com/kr/free-icons/-" title="탄산 음료 아이콘">탄산 음료 아이콘 제작자: smalllikeart - Flaticon</a>
+<a href="https://www.flaticon.com/kr/free-icons/" title="병 아이콘">병 아이콘 제작자: Freepik - Flaticon</a>
+<a href="https://www.flaticon.com/kr/free-icons/" title="커피 아이콘">커피 아이콘 제작자: Freepik - Flaticon</a>
